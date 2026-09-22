@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Jenn Wiles and Anna de Klerk//Wedding Website//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:20280211-wedding@jenn-and-anna
+DTSTAMP:20260913T000000Z
+DTSTART;VALUE=DATE:20280211
+DTEND;VALUE=DATE:20280212
+SUMMARY:Jenn & Anna's Wedding
+LOCATION:Mudbrick Vineyard\, Waiheke Island\, NZ
+DESCRIPTION:Ceremony and reception at Mudbrick Vineyard — vows in the vines\, dinner and dancing above the harbour. Times to follow.
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR

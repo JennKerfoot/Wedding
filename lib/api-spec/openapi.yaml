@@ -1,0 +1,245 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: rsvp
+    description: Wedding RSVP operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /rsvps:
+    post:
+      operationId: createRsvp
+      tags: [rsvp]
+      summary: Submit a wedding RSVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRsvpInput"
+      responses:
+        "201":
+          description: RSVP recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RsvpConfirmation"
+        "400":
+          description: Invalid RSVP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /rsvps/admin/session:
+    post:
+      operationId: createRsvpAdminSession
+      tags: [rsvp]
+      summary: Start a private couple RSVP session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RsvpAdminSessionInput"
+      responses:
+        "204":
+          description: Session created
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        "401":
+          description: Incorrect passphrase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRsvpAdminSession
+      tags: [rsvp]
+      summary: End the current private couple RSVP session
+      responses:
+        "204":
+          description: Session ended
+  /rsvps/admin:
+    get:
+      operationId: listRsvps
+      tags: [rsvp]
+      summary: List wedding RSVPs for the couple
+      responses:
+        "200":
+          description: RSVP list and totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RsvpAdminResponse"
+        "401":
+          description: Private session required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /rsvps/admin/export:
+    get:
+      operationId: exportRsvps
+      tags: [rsvp]
+      summary: Export wedding RSVPs as CSV
+      responses:
+        "200":
+          description: CSV export
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          description: Private session required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    CreateRsvpInput:
+      type: object
+      properties:
+        names:
+          type: string
+          minLength: 2
+          maxLength: 240
+        email:
+          type: string
+          format: email
+          maxLength: 320
+        attendance:
+          type: string
+          enum: [attending, declining]
+        partySize:
+          type: integer
+          minimum: 0
+          maximum: 12
+        dietaryNotes:
+          type: string
+          maxLength: 1000
+        songRequest:
+          type: string
+          maxLength: 300
+        message:
+          type: string
+          maxLength: 2000
+      required:
+        - names
+        - email
+        - attendance
+        - partySize
+    RsvpConfirmation:
+      type: object
+      properties:
+        id:
+          type: integer
+        names:
+          type: string
+        attendance:
+          type: string
+          enum: [attending, declining]
+        partySize:
+          type: integer
+        submittedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - names
+        - attendance
+        - partySize
+        - submittedAt
+    RsvpAdminSessionInput:
+      type: object
+      properties:
+        passphrase:
+          type: string
+          minLength: 8
+          maxLength: 200
+      required:
+        - passphrase
+    RsvpRecord:
+      allOf:
+        - $ref: "#/components/schemas/RsvpConfirmation"
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+            dietaryNotes:
+              type: string
+            songRequest:
+              type: string
+            message:
+              type: string
+          required:
+            - email
+            - dietaryNotes
+            - songRequest
+            - message
+    RsvpTotals:
+      type: object
+      properties:
+        responses:
+          type: integer
+        attendingParties:
+          type: integer
+        attendingGuests:
+          type: integer
+        decliningParties:
+          type: integer
+      required:
+        - responses
+        - attendingParties
+        - attendingGuests
+        - decliningParties
+    RsvpAdminResponse:
+      type: object
+      properties:
+        totals:
+          $ref: "#/components/schemas/RsvpTotals"
+        responses:
+          type: array
+          items:
+            $ref: "#/components/schemas/RsvpRecord"
+      required:
+        - totals
+        - responses
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+

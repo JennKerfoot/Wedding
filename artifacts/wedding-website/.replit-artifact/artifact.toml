@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Our Wedding Website"
+description = "A warm, story-driven wedding website with event details, an RSVP experience, and a responsive guest-facing design."
+version = "1.0.0"
+id = "artifacts/wedding-website"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23245
+
+[services.development]
+run = "pnpm --filter @workspace/wedding-website run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wedding-website", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/wedding-website/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23245"
+BASE_PATH = "/"

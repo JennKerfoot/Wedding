@@ -1,0 +1,3 @@
+- [Visual baseline freshness](visual-baseline-freshness.md) — regenerate screenshots only against a fresh production build, never a reused local server.
+- [Google font subset behavior](google-font-subset-behavior.md) — Google Fonts can serve different WOFF2 binaries by device class; preserve matching local desktop/mobile variants for stable visual output.
+- [Keyboard overlay behavior](keyboard-overlay-behavior.md) — pointer-events do not remove hidden navigation from the tab order; closed overlays need an explicit focusability state.
