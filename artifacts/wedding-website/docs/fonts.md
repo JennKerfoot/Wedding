@@ -69,4 +69,4 @@ the same change.
 
 ## Release validation
 
-Changes under the wedding website are validated by the protected `Wedding website release validation` check before merging.
+Changes under the wedding website are validated by the protected `Wedding website release validation` check before merging. GitHub accepts only the check produced by the GitHub Actions app.
