@@ -1,0 +1,77 @@
+name: Release wedding website
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "artifacts/wedding-website/**"
+      - "lib/api-client-react/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Wedding website release validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      BASE_PATH: /
+      PORT: "23245"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build wedding website
+        id: build
+        run: pnpm --filter @workspace/wedding-website run build
+
+      - name: Record build failure diagnostics
+        if: ${{ failure() && steps.build.outcome == 'failure' && hashFiles('artifacts/wedding-website/release-diagnostics/visual-gate/**') == '' }}
+        run: |
+          mkdir -p artifacts/wedding-website/release-diagnostics/visual-gate
+          cat > artifacts/wedding-website/release-diagnostics/visual-gate/manifest.json <<'EOF'
+          {
+            "status": "build-failed",
+            "command": "pnpm --filter @workspace/wedding-website run build"
+          }
+          EOF
+
+      - name: Upload failed visual diagnostics
+        id: visual-diagnostics
+        if: ${{ failure() && steps.build.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: wedding-visual-gate-diagnostics-${{ github.run_id }}
+          path: artifacts/wedding-website/release-diagnostics/visual-gate/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Link visual diagnostics in release logs
+        if: ${{ steps.visual-diagnostics.outcome == 'success' }}
+        run: |
+          echo "Visual diagnostics artifact: ${{ steps.visual-diagnostics.outputs.artifact-url }}"
+
+      - name: Clean release diagnostics from workspace
+        if: ${{ always() }}
+        run: rm -rf artifacts/wedding-website/release-diagnostics/visual-gate
